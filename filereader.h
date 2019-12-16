@@ -18,6 +18,6 @@ int readfile(FILE* fp, char buff[])
 		}
 		i++;
 	}
-	buff[--i] = '\n';
-	return l_num; 
+	buff[--i] = 0;
+	return i; 
 }

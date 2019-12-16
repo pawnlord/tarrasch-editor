@@ -4,6 +4,8 @@
 #define gotoxy(x, y) printf("\033[%d;%dH", (y), (x))
 #define godownx(x) printf("\033[%dB", (x))
 #define goupx(x) printf("\033[%dA", (x))
+#define goleftx(x) printf("\033[%dD", (x))
+#define gorightx(x) printf("\033[%dC", (x))
 #define delete(x) printf("\033[%dD \033[%dD", 1, 1)
 #define display() printf("\n")
 
@@ -27,9 +29,9 @@ void resetTermios(void)
 }
 
 /* Read 1 character - echo defines echo mode */
-char getch_(int echo) 
+int getch_(int echo) 
 {
-  char ch;
+  int ch;
   initTermios(echo);
   ch = getchar();
   resetTermios();
@@ -40,7 +42,7 @@ char getch_(int echo)
 Read 1 character without echo 
 getch() function definition.
 */
-char getch(void) 
+int getch(void) 
 {
   return getch_(0);
 }
@@ -49,7 +51,7 @@ char getch(void)
 Read 1 character with echo 
 getche() function definition.
 */
-char getche(void) 
+int getche(void) 
 {
   return getch_(1);
 }
