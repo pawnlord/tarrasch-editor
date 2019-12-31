@@ -55,3 +55,12 @@ int getche(void)
 {
   return getch_(1);
 }
+
+void message(int width, int height, char* message)
+{
+	int length = 0;
+	while(message[length+1] !=0)
+		length++;
+	gotoxy(width/2-(length/2), height-1);
+	printf("%s", message);
+}
