@@ -49,10 +49,21 @@ int insert_deletion(char* source,  int index)
 	}
 	source[i] = 0;
 }
-int main(void)
+int main(int argc, char *argv[])
 {
 	char text[100000] = {0};
-	FILE* source = fopen("test", "r");
+	char filename[100] = {0};
+	if(argc < 2)
+		strcpy(filename, "untitled");
+	else
+		strcpy(filename, argv[1]);
+	FILE* source;
+    if (!(source = fopen(filename, "r")))
+    {
+        source = fopen(filename, "w");
+        fclose(source);
+        source = fopen(filename, "r");
+    }
 	int cursor = readfile(source, text);
 	fclose(source);
 	struct winsize w;
@@ -60,6 +71,8 @@ int main(void)
 	ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 	int width = w.ws_col;
 	int height = w.ws_row;
+	int lines_start = 0;
+	int lines_end = height-4;
 	int last_width = 0;
 	clear();
 	int i;
@@ -69,27 +82,29 @@ int main(void)
 	unsigned int c = ' ';
 	int x = 0; 
 	int y = 0; 
+	int last_x = 0; 
+	int last_y = 0; 
 	char msg[200];
 	while(1)
 	{
+		//get screen dimensions
 		ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 	 	width = w.ws_col;
 	 	height = w.ws_row;
 	 	
 		clear();
-		printf("ESC TWICE-EXIT WITH SAVING   ^C-EXIT WITHOUT SAVING--Tarrasch");
-		
-		gotoxy(1,2);
-		for(i = 0; i < width; ++i)
-		{
-			printf("-");
-		}
-		display();
-		printf("%s",text);
+		//Start figuring out display_text
+		last_x = x;
+		last_y = y;
 		x=0;
 		y=3;
 		i = 0;
-		
+		lines_start = 0;
+		lines_end = height-4;
+		int line_counter = 0;
+		char display_text[100000] = {0};
+		if(cursor < 0)
+			cursor = 0;
 		sprintf(msg, "Cursor: %d", cursor);
 		message(width, height, msg);
 		int nl_check = 0;
@@ -97,8 +112,14 @@ int main(void)
 			if(text[i] == '\n' || x > width)
 			{
 				x=0;
+				line_counter++;
 				y++;
-				nl_check = 1;
+				if(y > height-4)
+				{
+					y--;
+					lines_start++;
+					lines_end++;
+				}
 			}
 			++i;
 			x++;
@@ -109,13 +130,71 @@ int main(void)
 			
 			x%=width;
 		}
-		sprintf(msg, "Coords: %d, %d", x, y);
+		/*
+		if(y<last_y && y == 4 && lines_start != 0)
+		{
+			lines_start--;
+			lines_end--;
+		}
+		*/
+		sprintf(msg, "X, Y: %d, %d", x, y);
+		message(width, height-2, msg);
+		sprintf(msg, "LINES_START, LINES_END: %d, %d", lines_start, lines_end);
 		message(width, height-1, msg);
-		gotoxy(x+1-nl_check,y);
-				
+		line_counter = 0;
+		char cpy_check = 0;
+		int cpy_start = 0;
+		i = 0;
+		while(text[i]!=0){
+			if(cpy_check == 1)
+			{
+				display_text[i-cpy_start] = text[i];
+			}
+			else
+			{
+				++cpy_start;
+			}
+			
+			if(text[i] == '\n' || x > width)
+			{
+				line_counter++;
+			}
+			if(line_counter == lines_start)
+			{
+				cpy_check = 1;
+			}
+			if(line_counter == lines_end)
+			{
+				cpy_check = 0;
+			}
+			++i;
+		}
+		//display text
+		gotoxy(1,3);
+		printf("%s",display_text);
+		//display overhead
+		gotoxy(1,1);
+		for(i = 0; i < width; ++i)
+		{
+			printf(" ");
+		}
+		gotoxy(1,1);
+		printf("ESC TWICE-EXIT WITH SAVING   ^C-EXIT WITHOUT SAVING -- %s -- Tarrasch", filename);
+		
+		gotoxy(1,2);
+		for(i = 0; i < width; ++i)
+		{
+			printf("-");
+		}
+		gotoxy(x-nl_check,y);
+			
+		//*****************
+		// Start of editor
+		//*****************
+		
 		c = getch();
 			
-		if(c == 127 && cursor > 0)
+		if(c == 127 && cursor >= 0)
 		{
 			--cursor;
 			insert_deletion(text, cursor);
@@ -198,6 +277,8 @@ int main(void)
 						{
 							new_length++;
 						}
+						if(text[j] == '\n')
+							new_length++;
 						while(text[--i] != '\n' && i > 0)
 						{
 							length++;
@@ -231,8 +312,16 @@ int main(void)
 		last_width = width;
 		//scanf(" %s", n);
 	}
-	source = fopen("test", "w");
+	if(strcmp(filename, "untitled")==0)
+	{
+		gotoxy(0,height);
+		strcpy(filename, "");
+		printf("NAME: "); 
+		scanf("%s", filename);
+	}
+	//printf("\nFILENAME: %s\n", filename);
+	source = fopen(filename, "w");
 	fputs(text, source);
-	gotoxy(0,height);
+	fclose(source);
 	return 0;
 }

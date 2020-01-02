@@ -61,6 +61,13 @@ void message(int width, int height, char* message)
 	int length = 0;
 	while(message[length+1] !=0)
 		length++;
+	gotoxy(0, height);
+//	int i = 0;
+//	while(i < width)
+//	{
+//		printf(" ");
+//		++i;
+//	}
 	gotoxy(width/2-(length/2), height-1);
 	printf("%s", message);
 }
