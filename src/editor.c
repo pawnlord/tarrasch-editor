@@ -4,8 +4,8 @@
 #include <string.h>
 #include <stropts.h>
 #include <string.h>
-#include "filereader.h"
-#include "termfuncs.h"
+#include "../headers/filereader.h"
+#include "../headers/termfuncs.h"
 int insert(char* source, char* new, int index)
 {
 	int i = index;
@@ -105,6 +105,9 @@ int main(int argc, char *argv[])
 		char display_text[100000] = {0};
 		if(cursor < 0)
 			cursor = 0;
+		if(cursor!= 0)
+			while(text[cursor-1] == 0)
+				cursor--;
 		sprintf(msg, "Cursor: %d", cursor);
 		message(width, height, msg);
 		int nl_check = 0;
@@ -116,9 +119,9 @@ int main(int argc, char *argv[])
 				y++;
 				if(y > height-4)
 				{
-					y--;
-					lines_start++;
-					lines_end++;
+					y-=((height-4)/2);
+					lines_start+=((height-4)/2);
+					lines_end+=((height-4)/2);
 				}
 			}
 			++i;
@@ -145,7 +148,8 @@ int main(int argc, char *argv[])
 		char cpy_check = 0;
 		int cpy_start = 0;
 		i = 0;
-		while(text[i]!=0){
+		while(text[i]!=0)
+		{
 			if(cpy_check == 1)
 			{
 				display_text[i-cpy_start] = text[i];
@@ -269,9 +273,7 @@ int main(int argc, char *argv[])
 							cursor--;
 						length = 1;
 						int new_length = 0;
-						while(text[++cursor] != '\n' && text[cursor-1] != 0)
-						{
-						}
+						while(text[++cursor] != '\n' && text[cursor-1] != 0){}
 						j = cursor;
 						while(text[++j] != '\n' && text[j-1] != 0)
 						{
