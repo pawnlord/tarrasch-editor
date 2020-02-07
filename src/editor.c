@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
 		//Start figuring out display_text
 		last_x = x;
 		last_y = y;
-		x=0;
+		x=1;
 		y=3;
 		i = 0;
 		lines_start = 0;
@@ -148,25 +148,31 @@ int main(int argc, char *argv[])
 		char cpy_check = 0;
 		int cpy_start = 0;
 		i = 0;
+		// Copy all text we want to display, from line lines_start to lines_end
 		while(text[i]!=0)
 		{
-			if(cpy_check == 1)
-			{
-				display_text[i-cpy_start] = text[i];
-			}
-			else
-			{
-				++cpy_start;
-			}
-			
-			if(text[i] == '\n' || x > width)
-			{
-				line_counter++;
-			}
+		
+			//Start copying if we are at lines start
 			if(line_counter == lines_start)
 			{
 				cpy_check = 1;
 			}
+			// If we are copying, copy
+			if(cpy_check == 1)
+			{
+				display_text[i-cpy_start] = text[i];
+			}
+			//otherwise, move the counter so we have accurate start of copyiing
+			else
+			{
+				++cpy_start;
+			}
+			//if we are going to a new line, add to line coutner
+			if(text[i] == '\n' || x > width)
+			{
+				line_counter++;
+			}
+			//stop if we are at the end
 			if(line_counter == lines_end)
 			{
 				cpy_check = 0;
@@ -190,11 +196,11 @@ int main(int argc, char *argv[])
 		{
 			printf("-");
 		}
-		gotoxy(x-nl_check,y);
+		gotoxy(x,y);
 			
-		//*****************
+		//***************************************************
 		// Start of editor
-		//*****************
+		//***************************************************
 		
 		c = getch();
 			
