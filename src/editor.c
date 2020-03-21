@@ -6,51 +6,61 @@
 #include <string.h>
 #include "../headers/filereader.h"
 #include "../headers/termfuncs.h"
-int insert(char* source, char* new, int index)
-{
+int insert(char* source, char* new, int index) {
 	int i = index;
 	char insertion[100000] = {0};
 	gotoxy(20, 20);
-	while(source[i]!=0)
-	{
+	while(source[i]!=0) {
 		printf("H");
 		insertion[i-(index)] = source[i];
 		++i;
 	}
 	
 	int j = 0;
-	while(new[j]!=0)
-	{
+	while(new[j]!=0) {
 		source[index+j] = new[j];
 		++j;
 	}
 	i = 0;
-	while(insertion[i]!=0)
-	{
+	while(insertion[i]!=0) {
 		source[index+j+i] = insertion[i];
 		++i;
 	}
 	
 }
-int insert_deletion(char* source,  int index)
-{
+int insert_deletion(char* source,  int index) {
 	int i = index;
 	char insertion[100000] = {0};
-	while(source[i]!=0)
-	{
+	while(source[i]!=0) {
 		insertion[i-index] = source[i];
 		++i;
 	}
 	i = index;
-	while(insertion[i-(index)]!=0)
-	{
+	while(insertion[i-(index)]!=0) {
 		source[i] = insertion[i-(index-1)];
 		++i;
 	}
 	source[i] = 0;
 }
-int main(int argc, char *argv[])
-{
+
+int read_syntax(char raw_syntax[], char syntax[][2][1000]) {
+	char word[255] = {0};
+	int reading_defined = 1;
+	int current_letter = 0;
+	int current_word = 0;
+	for(int i = 0; raw_syntax[i] != 0; i++) {
+		if(raw_syntax[i] == ' ') {
+			//strcpy();
+			reading_defined = 0;
+			 
+			current_word++;
+			i++;
+		}
+		word[current_letter] = raw_syntax[i];
+	}
+}
+
+int main(int argc, char *argv[]) {
 	char text[100000] = {0};
 	char filename[100] = {0};
 	if(argc < 2)
@@ -58,14 +68,27 @@ int main(int argc, char *argv[])
 	else
 		strcpy(filename, argv[1]);
 	FILE* source;
-    if (!(source = fopen(filename, "r")))
-    {
-        source = fopen(filename, "w");
-        fclose(source);
-        source = fopen(filename, "r");
+	if(strcmp(filename, "untitled")) {
+		if (!(source = fopen(filename, "r"))) {
+		    source = fopen(filename, "w");
+		    fclose(source);
+		    source = fopen(filename, "r");
+		}
+		readfile(source, text);
+		fclose(source);
     }
-	int cursor = readfile(source, text);
-	fclose(source);
+	int cursor = 0;
+	// Config file for syntax highlighting
+	FILE* syntax_cfg;
+	char raw_syntax[100000] = {0};
+	char syntax[1000][2][1000] = {{}};
+    if (!(syntax_cfg = fopen("../syntax.cfg", "r"))) {
+        syntax_cfg = fopen("../syntax.cfg", "w");
+        fclose(syntax_cfg);
+        syntax_cfg = fopen("../syntax.cfg", "r");
+    }
+    readfile(syntax_cfg, raw_syntax);
+	fclose(syntax_cfg);
 	struct winsize w;
 	//Get the width for formating
 	ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
@@ -85,8 +108,7 @@ int main(int argc, char *argv[])
 	int last_x = 0; 
 	int last_y = 0; 
 	char msg[200];
-	while(1)
-	{
+	while(1) {
 		//get screen dimensions
 		ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 	 	width = w.ws_col;
@@ -112,22 +134,22 @@ int main(int argc, char *argv[])
 		message(width, height, msg);
 		int nl_check = 0;
 		while(text[i]!=0){
-			if(text[i] == '\n' || x > width)
-			{
+			if(text[i] == '\n' || x > width) {
 				x=0;
 				line_counter++;
 				y++;
-				if(y > height-4)
-				{
+				if(y > height-4) {
 					y-=((height-4)/2);
 					lines_start+=((height-4)/2);
 					lines_end+=((height-4)/2);
 				}
 			}
+			if(text[i] == '\t') {
+				x+=7;
+			}
 			++i;
 			x++;
-			if(i == cursor)
-			{
+			if(i == cursor) {
 				break;
 			}
 			
@@ -149,32 +171,26 @@ int main(int argc, char *argv[])
 		int cpy_start = 0;
 		i = 0;
 		// Copy all text we want to display, from line lines_start to lines_end
-		while(text[i]!=0)
-		{
+		while(text[i]!=0) {
 		
 			//Start copying if we are at lines start
-			if(line_counter == lines_start)
-			{
+			if(line_counter == lines_start) {
 				cpy_check = 1;
 			}
 			// If we are copying, copy
-			if(cpy_check == 1)
-			{
+			if(cpy_check == 1) {
 				display_text[i-cpy_start] = text[i];
 			}
 			//otherwise, move the counter so we have accurate start of copyiing
-			else
-			{
+			else {
 				++cpy_start;
 			}
 			//if we are going to a new line, add to line coutner
-			if(text[i] == '\n' || x > width)
-			{
+			if(text[i] == '\n' || x > width) {
 				line_counter++;
 			}
 			//stop if we are at the end
-			if(line_counter == lines_end)
-			{
+			if(line_counter == lines_end) {
 				cpy_check = 0;
 			}
 			++i;
@@ -184,16 +200,14 @@ int main(int argc, char *argv[])
 		printf("%s",display_text);
 		//display overhead
 		gotoxy(1,1);
-		for(i = 0; i < width; ++i)
-		{
+		for(i = 0; i < width; ++i) {
 			printf(" ");
 		}
 		gotoxy(1,1);
 		printf("ESC TWICE-EXIT WITH SAVING   ^C-EXIT WITHOUT SAVING -- %s -- Tarrasch", filename);
 		
 		gotoxy(1,2);
-		for(i = 0; i < width; ++i)
-		{
+		for(i = 0; i < width; ++i) {
 			printf("-");
 		}
 		gotoxy(x,y);
@@ -204,36 +218,20 @@ int main(int argc, char *argv[])
 		
 		c = getch();
 			
-		if(c == 127 && cursor >= 0)
-		{
+		if(c == 127 && cursor >= 0) {
 			--cursor;
 			insert_deletion(text, cursor);
 			
 		}
-		else if(c == '\t')
-		{
-			for(j = 0; j < tab_spaces; j++)
-			{
-				printf(" ");
-				insert(text, " ", cursor);
-				cursor++;
-			}
-			
-		}
-		else if(c == 27)
-		{
+		else if(c == 27) {
 			message(width, height, "--Really Exit?--");
 			c = getch();
-			if(c == 27)
-			{
+			if(c == 27) {
 				printf("\n");
 				break;
-			}
-			else
-			{
+			} else {
 				c = getch();
-				switch(c)
-				{
+				switch(c) {
 					case 'D':
 					//left
 						if(cursor > 0)
@@ -241,31 +239,25 @@ int main(int argc, char *argv[])
 					break;
 					case 'A':
 					//up
-						if(y > 3)
-						{
+						if(y > 3) {
 							j = cursor;
 							i = cursor;
-							while(text[i]!='\n' && i >= 0)
-							{
+							while(text[i]!='\n' && i >= 0) {
 								--i;
 							}
 							cursor = i;
 						 	--i;
 							length = 0;
-							while(text[i]!='\n' && i >= 0)
-							{
+							while(text[i]!='\n' && i >= 0) {
 								length++;
 								--i;
 							}
-							if(x < length )
-							{
+							if(x < length ) {
 								cursor = (j-cursor)+i;
 							}
-							else
-							{
+							else {
 								j--;
-								while(text[j]!='\n' && j >= 0)
-								{
+								while(text[j]!='\n' && j >= 0) {
 									--j;
 								}
 								cursor = j;
@@ -281,22 +273,18 @@ int main(int argc, char *argv[])
 						int new_length = 0;
 						while(text[++cursor] != '\n' && text[cursor-1] != 0){}
 						j = cursor;
-						while(text[++j] != '\n' && text[j-1] != 0)
-						{
+						while(text[++j] != '\n' && text[j-1] != 0) {
 							new_length++;
 						}
 						if(text[j] == '\n')
 							new_length++;
-						while(text[--i] != '\n' && i > 0)
-						{
+						while(text[--i] != '\n' && i > 0) {
 							length++;
 						}
-						if(length < new_length)
-						{
+						if(length < new_length) {
 							cursor += length;
 						}
-						else
-						{
+						else {
 							cursor += new_length;
 						}
 					break;
@@ -311,8 +299,7 @@ int main(int argc, char *argv[])
 				}
 			}
 		}
-		else
-		{
+		else {
 			printf("%c", c);
 			insert(text, (char*)&c, cursor);
 			cursor++;
@@ -320,8 +307,7 @@ int main(int argc, char *argv[])
 		last_width = width;
 		//scanf(" %s", n);
 	}
-	if(strcmp(filename, "untitled")==0)
-	{
+	if(strcmp(filename, "untitled")==0) {
 		gotoxy(0,height);
 		strcpy(filename, "");
 		printf("NAME: "); 
