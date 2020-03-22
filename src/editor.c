@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stropts.h>
 #include <string.h>
+#include "../headers/keyhandlers.h"
 #include "../headers/filereader.h"
 #include "../headers/termfuncs.h"
 int insert(char* source, char* new, int index) {
@@ -112,6 +113,7 @@ int getsyntax(char syntax[][1000], char keyword[], char val[]) {
 }
 
 int main(int argc, char *argv[]) {
+	start_handler(INThandler, SIGINT);
 	startbuff();
 	printf("\033[0m");
 	char text[100000] = {0};
@@ -131,13 +133,14 @@ int main(int argc, char *argv[]) {
 		fclose(source);
     }
 	int cursor = 0;
-	// Config file for syntax highlighting
+	/* Config file for syntax highlighting */
 	FILE* syntax_cfg;
 	char raw_syntax[100000] = {0};
 	char syntax[1000][1000] = {""};
 	char highlight[1000] = {0};
 	char highlight_code[1000] = {0};
 	char syntax_filename[100];
+	/* get home directory */
 	strcat(strcpy(syntax_filename, getenv("HOME")), "/.tarrasch/syntax.cfg");
     if (!(syntax_cfg = fopen(syntax_filename, "r"))) {
         syntax_cfg = fopen(syntax_filename, "w");
@@ -147,13 +150,8 @@ int main(int argc, char *argv[]) {
     readfile(syntax_cfg, raw_syntax);
 	fclose(syntax_cfg);
 	readsyntaxcfg(raw_syntax, syntax);
-	//for(int a = 0; strcmp(syntax[a], ""); a++){
-	//	printf("%s\n", syntax[a]);
-	//}
-	getsyntax(syntax, "ifndef", highlight);
-	getch();
 	struct winsize w;
-	//Get the width for formating
+	/* Get the width for formating */
 	ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 	int width = w.ws_col;
 	int height = w.ws_row;
@@ -172,13 +170,13 @@ int main(int argc, char *argv[]) {
 	char msg[200];
 	sprintf(msg, "New Buffer");
 	message(width, height, msg);
-	while(1) {
-		//get screen dimensions
+	while(running) {
+		/* get screen dimensions */
 		ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 	 	width = w.ws_col;
 	 	height = w.ws_row;
 	 	
-		//Start figuring out display_text
+		/* Start figuring out display_text */
 		last_x = x;
 		last_y = y;
 		x=1;
@@ -216,13 +214,6 @@ int main(int argc, char *argv[]) {
 			
 			x%=width;
 		}
-		/*
-		if(y<last_y && y == 4 && lines_start != 0)
-		{
-			lines_start--;
-			lines_end--;
-		}
-		*/
 		line_counter = 0;
 		char cpy_check = 0;
 		int cpy_start = 0;
@@ -243,6 +234,7 @@ int main(int argc, char *argv[]) {
 			/* If we are copying, copy */
 			if(cpy_check == 1) {
 				display_text[i-cpy_start+offset] = text[i];
+				/* TODO: MAKE FUNCTION */ 
 				if(text[i] == ' ' || text[i] == '\n' || text[i] == '#' ||
 				 text[i] == '+' || text[i] == '[' || text[i] == ']' ||
 				 text[i] == '=' || text[i] == '-' || text[i] == '(' ||
@@ -399,15 +391,17 @@ int main(int argc, char *argv[]) {
 		last_width = width;
 		clear();
 	}
-	if(strcmp(filename, "untitled")==0) {
-		gotoxy(0,height);
-		strcpy(filename, "");
-		printf("NAME: "); 
-		scanf("%s", filename);
+	if(running) {
+		if(strcmp(filename, "untitled")==0) {
+			gotoxy(0,height);
+			strcpy(filename, "");
+			printf("NAME: "); 
+			scanf("%s", filename);
+		}
+		source = fopen(filename, "w");
+		fputs(text, source);
+		fclose(source);
 	}
-	source = fopen(filename, "w");
-	fputs(text, source);
-	fclose(source);
 	endbuff();
 	return 0;
 }
