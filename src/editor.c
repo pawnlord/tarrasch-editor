@@ -61,6 +61,7 @@ int read_syntax(char raw_syntax[], char syntax[][2][1000]) {
 }
 
 int main(int argc, char *argv[]) {
+	startbuff();
 	char text[100000] = {0};
 	char filename[100] = {0};
 	if(argc < 2)
@@ -108,13 +109,14 @@ int main(int argc, char *argv[]) {
 	int last_x = 0; 
 	int last_y = 0; 
 	char msg[200];
+	sprintf(msg, "New Buffer");
+	message(width, height, msg);
 	while(1) {
 		//get screen dimensions
 		ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 	 	width = w.ws_col;
 	 	height = w.ws_row;
 	 	
-		clear();
 		//Start figuring out display_text
 		last_x = x;
 		last_y = y;
@@ -130,18 +132,16 @@ int main(int argc, char *argv[]) {
 		if(cursor!= 0)
 			while(text[cursor-1] == 0)
 				cursor--;
-		sprintf(msg, "Cursor: %d", cursor);
-		message(width, height, msg);
 		int nl_check = 0;
 		while(text[i]!=0){
 			if(text[i] == '\n' || x > width) {
 				x=0;
 				line_counter++;
 				y++;
-				if(y > height-4) {
-					y-=((height-4)/2);
-					lines_start+=((height-4)/2);
-					lines_end+=((height-4)/2);
+				if(y > height-1) {
+					y-=((height-1)/2);
+					lines_start+=((height-1)/2);
+					lines_end+=((height-1)/2);
 				}
 			}
 			if(text[i] == '\t') {
@@ -162,43 +162,39 @@ int main(int argc, char *argv[]) {
 			lines_end--;
 		}
 		*/
-		sprintf(msg, "X, Y: %d, %d", x, y);
-		message(width, height-2, msg);
-		sprintf(msg, "LINES_START, LINES_END: %d, %d", lines_start, lines_end);
-		message(width, height-1, msg);
 		line_counter = 0;
 		char cpy_check = 0;
 		int cpy_start = 0;
 		i = 0;
-		// Copy all text we want to display, from line lines_start to lines_end
+		/* Copy all text we want to display, from line lines_start to lines_end */
 		while(text[i]!=0) {
 		
-			//Start copying if we are at lines start
+			/* Start copying if we are at lines start */
 			if(line_counter == lines_start) {
 				cpy_check = 1;
 			}
-			// If we are copying, copy
+			/* If we are copying, copy */
 			if(cpy_check == 1) {
 				display_text[i-cpy_start] = text[i];
 			}
-			//otherwise, move the counter so we have accurate start of copyiing
+			/* otherwise, move the counter so we have accurate start of copying */
 			else {
 				++cpy_start;
 			}
-			//if we are going to a new line, add to line coutner
+			/* if we are going to a new line, add to line coutner */
 			if(text[i] == '\n' || x > width) {
 				line_counter++;
 			}
-			//stop if we are at the end
+			/* stop if we are at the end */
 			if(line_counter == lines_end) {
 				cpy_check = 0;
 			}
 			++i;
 		}
-		//display text
+		/* display text */
 		gotoxy(1,3);
 		printf("%s",display_text);
-		//display overhead
+		/* display overhead */
 		gotoxy(1,1);
 		for(i = 0; i < width; ++i) {
 			printf(" ");
@@ -212,9 +208,9 @@ int main(int argc, char *argv[]) {
 		}
 		gotoxy(x,y);
 			
-		//***************************************************
-		// Start of editor
-		//***************************************************
+		/****************************************************/
+		/* Start of editor                                  */
+		/****************************************************/
 		
 		c = getch();
 			
@@ -305,7 +301,7 @@ int main(int argc, char *argv[]) {
 			cursor++;
 		}
 		last_width = width;
-		//scanf(" %s", n);
+		clear();
 	}
 	if(strcmp(filename, "untitled")==0) {
 		gotoxy(0,height);
@@ -313,9 +309,9 @@ int main(int argc, char *argv[]) {
 		printf("NAME: "); 
 		scanf("%s", filename);
 	}
-	//printf("\nFILENAME: %s\n", filename);
 	source = fopen(filename, "w");
 	fputs(text, source);
 	fclose(source);
+	endbuff();
 	return 0;
 }
