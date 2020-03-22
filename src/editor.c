@@ -212,7 +212,6 @@ int main(int argc, char *argv[]) {
 				break;
 			}
 			
-			x%=width;
 		}
 		line_counter = 0;
 		char cpy_check = 0;
