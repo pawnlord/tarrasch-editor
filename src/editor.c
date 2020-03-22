@@ -11,7 +11,6 @@ int insert(char* source, char* new, int index) {
 	char insertion[100000] = {0};
 	gotoxy(20, 20);
 	while(source[i]!=0) {
-		printf("H");
 		insertion[i-(index)] = source[i];
 		++i;
 	}
@@ -21,6 +20,7 @@ int insert(char* source, char* new, int index) {
 		source[index+j] = new[j];
 		++j;
 	}
+	
 	i = 0;
 	while(insertion[i]!=0) {
 		source[index+j+i] = insertion[i];
@@ -43,25 +43,70 @@ int insert_deletion(char* source,  int index) {
 	source[i] = 0;
 }
 
-int read_syntax(char raw_syntax[], char syntax[][2][1000]) {
+int readsyntaxcfg(char raw_syntax[], char syntax[][1000]) {
 	char word[255] = {0};
-	int reading_defined = 1;
 	int current_letter = 0;
 	int current_word = 0;
+	printf("Reading syntax...\n");
 	for(int i = 0; raw_syntax[i] != 0; i++) {
-		if(raw_syntax[i] == ' ') {
-			//strcpy();
-			reading_defined = 0;
-			 
+		if(raw_syntax[i] == '\n'  || raw_syntax[i] == 0) {
+			strcpy(syntax[current_word], word);
+			for(int j = 0; word[j] != 0; j++) {
+				word[j] = 0;
+			}
+			current_letter = 0;
 			current_word++;
 			i++;
 		}
 		word[current_letter] = raw_syntax[i];
+		current_letter++;
 	}
+	if(strcmp(syntax[current_word], "")) {
+		strcpy(syntax[current_word], word);
+	}
+	printf("Read syntax, lines: %d\n", current_word);
+	return 0;
+}
+
+int getsyntax(char syntax[][1000], char keyword[], char val[]) {
+	char current_keyword[50] = {0};
+	char name_end = 0;
+	char current_highlight[50] = {0};
+	int finding_name = 1;
+	for(int i = 0; strcmp(syntax[i], "") > 0; i++) {
+		finding_name = 1;
+		name_end = 0;
+		for(int j = 0; current_keyword[j] != 0; j++){
+			current_keyword[j] = 0;
+		}
+		for(int currc = 0; syntax[i][currc] != 0; currc++) {
+			if(syntax[i][currc] == ' ') {
+				if(strcmp(current_keyword, keyword) == 0){
+					finding_name = 0;
+					name_end = currc+1;		
+					for(int j = 0; current_highlight[j] != 0; j++){
+						current_highlight[j] = 0;
+					}
+				}
+			}
+			else if(finding_name) {
+				current_keyword[currc] = syntax[i][currc];
+			}
+			else {
+				current_highlight[currc-name_end] = syntax[i][currc];
+			}
+		}
+	}
+	if(strcmp(current_highlight, "") == 0) { 
+		return 0;
+	}		
+	strcpy(val, current_highlight);
+	return 1;
 }
 
 int main(int argc, char *argv[]) {
 	startbuff();
+	printf("\033[0m");
 	char text[100000] = {0};
 	char filename[100] = {0};
 	if(argc < 2)
@@ -82,7 +127,9 @@ int main(int argc, char *argv[]) {
 	// Config file for syntax highlighting
 	FILE* syntax_cfg;
 	char raw_syntax[100000] = {0};
-	char syntax[1000][2][1000] = {{}};
+	char syntax[1000][1000] = {""};
+	char highlight[1000] = {0};
+	char highlight_code[1000] = {0};
     if (!(syntax_cfg = fopen("../syntax.cfg", "r"))) {
         syntax_cfg = fopen("../syntax.cfg", "w");
         fclose(syntax_cfg);
@@ -90,6 +137,7 @@ int main(int argc, char *argv[]) {
     }
     readfile(syntax_cfg, raw_syntax);
 	fclose(syntax_cfg);
+	readsyntaxcfg(raw_syntax, syntax);
 	struct winsize w;
 	//Get the width for formating
 	ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
@@ -98,7 +146,6 @@ int main(int argc, char *argv[]) {
 	int lines_start = 0;
 	int lines_end = height-4;
 	int last_width = 0;
-	clear();
 	int i;
 	int j;
 	int length;
@@ -166,16 +213,50 @@ int main(int argc, char *argv[]) {
 		char cpy_check = 0;
 		int cpy_start = 0;
 		i = 0;
+		/* Syntax trackers */
+		char current_word[1000] = {};
+		int word_counter = 0;
+		int word_start = 0;
 		/* Copy all text we want to display, from line lines_start to lines_end */
+		int offset = 0;
 		while(text[i]!=0) {
 		
 			/* Start copying if we are at lines start */
 			if(line_counter == lines_start) {
 				cpy_check = 1;
+				word_start = 0;
 			}
 			/* If we are copying, copy */
 			if(cpy_check == 1) {
-				display_text[i-cpy_start] = text[i];
+				display_text[i-cpy_start+offset] = text[i];
+				if(text[i] == ' ' || text[i] == '\n' || text[i] == '#' ||
+				 text[i] == '+' || text[i] == '[' || text[i] == ']' ||
+				 text[i] == '=' || text[i] == '-' || text[i] == '(' ||
+				 text[i] == ')' || text[i] == '{' || text[i] == '}' ||
+				 text[i] == '<' || text[i] == '>' || text[i] == '/' ||
+				 text[i] == '*' || text[i] == '.' || text[i] == ',' ||
+				 text[i] == '!' || text[i] == '@' || text[i] == '$' ||
+				 text[i] == '%' || text[i] == '^' || text[i] == '&' ||
+				 text[i] == '|' || text[i] == '\\' || text[i] == '?' ||
+				 text[i] == ':' || text[i] == ';' || text[i] == '~' ) {
+					if(getsyntax(syntax, current_word, highlight)){
+					    sprintf(highlight_code, "\033[%sm", highlight);
+						printf(" %d - %d\n", word_start, i-cpy_start);
+						insert(display_text, highlight_code, word_start+offset);
+						offset+=5;
+						insert(display_text, "\033[0m", i-cpy_start+offset);
+						offset+=4;
+						//getch();
+					}
+					word_start = i+1-cpy_start;
+					word_counter = 0;
+					for(int k = 0; current_word[k] != 0; k++) {
+						current_word[k] = 0;
+					}
+				} else {
+					current_word[word_counter] = text[i];
+					word_counter++;
+				}
 			}
 			/* otherwise, move the counter so we have accurate start of copying */
 			else {
