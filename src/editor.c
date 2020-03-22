@@ -73,21 +73,28 @@ int getsyntax(char syntax[][1000], char keyword[], char val[]) {
 	char name_end = 0;
 	char current_highlight[50] = {0};
 	int finding_name = 1;
-	for(int i = 0; strcmp(syntax[i], "") > 0; i++) {
+	for(int i = 0; strcmp(syntax[i], ""); i++) {
+		/* Reset variables */
 		finding_name = 1;
 		name_end = 0;
 		for(int j = 0; current_keyword[j] != 0; j++){
 			current_keyword[j] = 0;
 		}
+		/* read for name */
 		for(int currc = 0; syntax[i][currc] != 0; currc++) {
+			/* if we are at the end of a word, check it */
 			if(syntax[i][currc] == ' ') {
+				/* if it is the word we are looking for, look for val */
 				if(strcmp(current_keyword, keyword) == 0){
 					finding_name = 0;
 					name_end = currc+1;		
 					for(int j = 0; current_highlight[j] != 0; j++){
 						current_highlight[j] = 0;
 					}
+				}else {
+					current_keyword[currc] = syntax[i][currc];
 				}
+				
 			}
 			else if(finding_name) {
 				current_keyword[currc] = syntax[i][currc];
@@ -130,14 +137,21 @@ int main(int argc, char *argv[]) {
 	char syntax[1000][1000] = {""};
 	char highlight[1000] = {0};
 	char highlight_code[1000] = {0};
-    if (!(syntax_cfg = fopen("../syntax.cfg", "r"))) {
-        syntax_cfg = fopen("../syntax.cfg", "w");
+	char syntax_filename[100];
+	strcat(strcpy(syntax_filename, getenv("HOME")), "/.tarrasch/syntax.cfg");
+    if (!(syntax_cfg = fopen(syntax_filename, "r"))) {
+        syntax_cfg = fopen(syntax_filename, "w");
         fclose(syntax_cfg);
-        syntax_cfg = fopen("../syntax.cfg", "r");
+        syntax_cfg = fopen(syntax_filename, "r");
     }
     readfile(syntax_cfg, raw_syntax);
 	fclose(syntax_cfg);
 	readsyntaxcfg(raw_syntax, syntax);
+	//for(int a = 0; strcmp(syntax[a], ""); a++){
+	//	printf("%s\n", syntax[a]);
+	//}
+	getsyntax(syntax, "ifndef", highlight);
+	getch();
 	struct winsize w;
 	//Get the width for formating
 	ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
@@ -238,7 +252,8 @@ int main(int argc, char *argv[]) {
 				 text[i] == '!' || text[i] == '@' || text[i] == '$' ||
 				 text[i] == '%' || text[i] == '^' || text[i] == '&' ||
 				 text[i] == '|' || text[i] == '\\' || text[i] == '?' ||
-				 text[i] == ':' || text[i] == ';' || text[i] == '~' ) {
+				 text[i] == ':' || text[i] == ';' || text[i] == '~' ||
+				 text[i] == '\t'  ) {
 					if(getsyntax(syntax, current_word, highlight)){
 					    sprintf(highlight_code, "\033[%sm", highlight);
 						printf(" %d - %d\n", word_start, i-cpy_start);
