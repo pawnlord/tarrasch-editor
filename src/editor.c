@@ -183,7 +183,7 @@ int main(int argc, char *argv[]) {
 		y=3;
 		i = 0;
 		lines_start = 0;
-		lines_end = height-4;
+		lines_end = height-1;
 		int line_counter = 0;
 		char display_text[100000] = {0};
 		if(cursor < 0)
@@ -247,12 +247,10 @@ int main(int argc, char *argv[]) {
 				 text[i] == '\t'  ) {
 					if(getsyntax(syntax, current_word, highlight)){
 					    sprintf(highlight_code, "\033[%sm", highlight);
-						printf(" %d - %d\n", word_start, i-cpy_start);
 						insert(display_text, highlight_code, word_start+offset);
 						offset+=5;
 						insert(display_text, "\033[0m", i-cpy_start+offset);
 						offset+=4;
-						//getch();
 					}
 					word_start = i+1-cpy_start;
 					word_counter = 0;
