@@ -183,7 +183,7 @@ int main(int argc, char *argv[]) {
 		y=3;
 		i = 0;
 		lines_start = 0;
-		lines_end = height-1;
+		lines_end = height-4;
 		int line_counter = 0;
 		char display_text[100000] = {0};
 		if(cursor < 0)
@@ -193,24 +193,24 @@ int main(int argc, char *argv[]) {
 				cursor--;
 		int nl_check = 0;
 		while(text[i]!=0){
-			if(text[i] == '\n' || x > width) {
+			if(text[i] == '\n' || x >= width) {
 				x=0;
 				line_counter++;
 				y++;
 				if(y > height-1) {
-					y-=((height-1)/2);
-					lines_start+=((height-1)/2);
-					lines_end+=((height-1)/2);
+					y-=((height-4)/2);
+					lines_start+=((height-4)/2);
+					lines_end+=((height-4)/2);
 				}
 			}
 			if(text[i] == '\t') {
 				x+=7;
 			}
-			++i;
-			x++;
 			if(i == cursor) {
 				break;
 			}
+			++i;
+			x++;
 			
 		}
 		line_counter = 0;
@@ -279,6 +279,8 @@ int main(int argc, char *argv[]) {
 		/* display text */
 		gotoxy(1,3);
 		printf("%s",display_text);
+		sprintf(msg, "s: %d, e: %d, w: %d, h: %d", lines_start, lines_end, width, height);
+		message(width/2, height, msg);
 		/* display overhead */
 		gotoxy(1,1);
 		for(i = 0; i < width; ++i) {
