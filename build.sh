@@ -1,6 +1,6 @@
 #!/bin/bash
 
-gcc src/editor.c -o bin/edit.o
+gcc src/editor.c src/config_reader.c -o bin/edit.o
 
 start_dir=$PWD
 cd ~

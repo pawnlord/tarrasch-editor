@@ -7,6 +7,7 @@
 #include "../headers/keyhandlers.h"
 #include "../headers/filereader.h"
 #include "../headers/termfuncs.h"
+#include "../headers/config_reader.h"
 int insert(char* source, char* new, int index) {
 	int i = index;
 	char insertion[100000] = {0};
@@ -192,8 +193,8 @@ int main(int argc, char *argv[]) {
 			while(text[cursor-1] == 0)
 				cursor--;
 		int nl_check = 0;
-		while(text[i]!=0){
-			if(text[i] == '\n' || x >= width) {
+		while(text[i]!=0 && i != cursor){
+			if(text[i] == '\n' || x > width) {
 				x=0;
 				line_counter++;
 				y++;
@@ -206,12 +207,8 @@ int main(int argc, char *argv[]) {
 			if(text[i] == '\t') {
 				x+=7;
 			}
-			if(i == cursor) {
-				break;
-			}
-			++i;
+			i++;
 			x++;
-			
 		}
 		line_counter = 0;
 		char cpy_check = 0;
@@ -279,8 +276,6 @@ int main(int argc, char *argv[]) {
 		/* display text */
 		gotoxy(1,3);
 		printf("%s",display_text);
-		sprintf(msg, "s: %d, e: %d, w: %d, h: %d", lines_start, lines_end, width, height);
-		message(width/2, height, msg);
 		/* display overhead */
 		gotoxy(1,1);
 		for(i = 0; i < width; ++i) {
