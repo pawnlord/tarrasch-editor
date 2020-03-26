@@ -167,6 +167,8 @@ int main(int argc, char *argv[]) {
 		char current_symbols[1000] = {};
 		int word_counter = 0;
 		int word_start = 0;
+		int symbol_counter = 0;
+		int symbol_start = 0;
 		/* Copy all text we want to display, from line lines_start to lines_end */
 		int offset = 0;
 		while(text[i]!=0) {
@@ -210,6 +212,31 @@ int main(int argc, char *argv[]) {
 						}
 					}
 					word_counter++;
+				}
+				if(in_string(text[i], alphanumeric)) {
+					if(dir_get_last_attr(syntax_cfg, "SYMBOLS", "SYMBOLS", highlight_val) && strcmp(current_symbols, "")) {
+							sprintf(highlight_code, "\033[%sm", highlight_val[0]);
+							insert(display_text, highlight_code, symbol_start+offset);
+							offset+=len(highlight_code);
+							insert(display_text, "\033[0m", i-cpy_start+offset);
+							offset+=4;
+					}
+					symbol_start = i+1-cpy_start;
+					symbol_counter = 0;
+					for(int k = 0; current_symbols[k] != 0; k++) {
+						current_symbols[k] = 0;
+					}
+				} else {
+					current_symbols[symbol_counter] = text[i];
+				
+					if(text[i+1] == 0) {
+							sprintf(highlight_code, "\033[%sm", highlight_val[0]);
+							insert(display_text, highlight_code, symbol_start+offset);
+							offset+=len(highlight_code);
+							insert(display_text, "\033[0m", i+1-cpy_start+offset);
+							offset+=4;
+					}
+					symbol_counter++;
 				}
 			}
 			/* otherwise, move the counter so we have accurate start of copying */
