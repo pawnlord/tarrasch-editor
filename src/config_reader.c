@@ -20,7 +20,11 @@ int is_field(char* str) {
 
 int file_reader(char* filename, char* buffer) {
 	int ret;
-	FILE* fp = fopen(filename, "r");
+	FILE* fp;
+	if(!(fp = fopen(filename, "r"))) {
+		return 0;
+	}
+	
 	char c = 0;
 	int i = 0;
 	// repeat until c is EOF
@@ -32,11 +36,14 @@ int file_reader(char* filename, char* buffer) {
 	}
 	buffer[i] = 0;
 	fclose(fp);
+	return 1;
 }
 
 int config_reader(char* filename, config* cfg) {
 	char buffer[1000] = "";
-	file_reader(filename, buffer);
+	if(!(file_reader(filename, buffer))) {
+		return 0;
+	}
 	int word_counter = 0;
 	int current_word = 0;
 	int i = 0;
@@ -70,6 +77,7 @@ int config_reader(char* filename, config* cfg) {
 	}
 	word_counter = 0;
 	current_word++;
+	return 1;
 }
 
 int get_field(config cfg, char* field_name, char field[][255]) {
@@ -160,19 +168,34 @@ int get_last_attr(config cfg, char field[][255], char attr[], char val[][50]) {
 }
 int dir_get_attr(config cfg, char fieldname[], char attr[], char val[][50][50]) {
 	char field[100][255] = {""};
-	get_field(cfg, fieldname, field);
-	get_attr(cfg, field, attr, val);
+	int ret = 1;
+	ret = get_field(cfg, fieldname, field);
+	if(ret == 0){
+		return 0;
+	}
+	ret = get_attr(cfg, field, attr, val);
+	return ret;
 }
 
 int dir_get_first_attr(config cfg, char fieldname[], char attr[], char val[][50]) {
 	char field[100][255] = {""};
-	get_field(cfg, fieldname, field);
-	get_first_attr(cfg, field, attr, val);
+	int ret = 1;
+	ret = get_field(cfg, fieldname, field);
+	if(ret == 0){
+		return 0;
+	}
+	ret = get_first_attr(cfg, field, attr, val);
+	return ret;
 }
 int dir_get_last_attr(config cfg, char fieldname[], char attr[], char val[][50]) {
 	char field[100][255] = {""};
-	get_field(cfg, fieldname, field);
-	get_last_attr(cfg, field, attr, val);
+	int ret = 1;
+	ret = get_field(cfg, fieldname, field);
+	if(ret == 0){
+		return 0;
+	}
+	ret = get_last_attr(cfg, field, attr, val);
+	return ret;
 }
 
 void set_cfg_field(config* cfg, char begin, char end) {

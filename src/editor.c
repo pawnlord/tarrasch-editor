@@ -135,22 +135,18 @@ int main(int argc, char *argv[]) {
     }
 	int cursor = 0;
 	/* Config file for syntax highlighting */
-	FILE* syntax_cfg;
-	char raw_syntax[100000] = {0};
-	char syntax[1000][1000] = {""};
-	char highlight[1000] = {0};
-	char highlight_code[1000] = {0};
-	char syntax_filename[100];
-	/* get home directory */
+	config syntax_cfg;
+	syntax_cfg.eol = '\n';
+	char syntax_filename[50] = {0};
+	char highlight_val[2][50] = {""};
+	char highlight_code[50] = {0}; 
 	strcat(strcpy(syntax_filename, getenv("HOME")), "/.tarrasch/syntax.cfg");
-    if (!(syntax_cfg = fopen(syntax_filename, "r"))) {
-        syntax_cfg = fopen(syntax_filename, "w");
-        fclose(syntax_cfg);
-        syntax_cfg = fopen(syntax_filename, "r");
+		
+	if (!(config_reader(syntax_filename, &syntax_cfg))) {
+        FILE* fp = fopen(syntax_filename, "w");
+        fclose(fp);
+        config_reader(syntax_filename, &syntax_cfg);
     }
-    readfile(syntax_cfg, raw_syntax);
-	fclose(syntax_cfg);
-	readsyntaxcfg(raw_syntax, syntax);
 	struct winsize w;
 	/* Get the width for formating */
 	ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
@@ -241,9 +237,9 @@ int main(int argc, char *argv[]) {
 				 text[i] == '%' || text[i] == '^' || text[i] == '&' ||
 				 text[i] == '|' || text[i] == '\\' || text[i] == '?' ||
 				 text[i] == ':' || text[i] == ';' || text[i] == '~' ||
-				 text[i] == '\t'  ) {
-					if(getsyntax(syntax, current_word, highlight)){
-					    sprintf(highlight_code, "\033[%sm", highlight);
+				 text[i] == '\t') {
+					if(dir_get_last_attr(syntax_cfg, "SYNTAX", current_word, highlight_val)){
+					    sprintf(highlight_code, "\033[%sm", highlight_val[0]);
 						insert(display_text, highlight_code, word_start+offset);
 						offset+=5;
 						insert(display_text, "\033[0m", i-cpy_start+offset);
@@ -256,6 +252,20 @@ int main(int argc, char *argv[]) {
 					}
 				} else {
 					current_word[word_counter] = text[i];
+					if(text[i+1] == 0) {
+						if(dir_get_last_attr(syntax_cfg, "SYNTAX", current_word, highlight_val)){
+							sprintf(highlight_code, "\033[%sm", highlight_val[0]);
+							insert(display_text, highlight_code, word_start+offset);
+							offset+=5;
+							insert(display_text, "\033[0m", i+1-cpy_start+offset);
+							offset+=4;
+						}
+						word_start = i+1-cpy_start;
+						word_counter = 0;
+						for(int k = 0; current_word[k] != 0; k++) {
+							current_word[k] = 0;
+						}
+					}
 					word_counter++;
 				}
 			}
