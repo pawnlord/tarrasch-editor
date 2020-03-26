@@ -8,6 +8,26 @@
 #include "../headers/filereader.h"
 #include "../headers/termfuncs.h"
 #include "../headers/config_reader.h"
+int in_string(char ch, char* str){
+	for(int i = 0; str[i] != 0; i++) {
+		if(ch == str[i]) {
+			return 1;
+		}
+	}
+	return 0;
+}
+
+int len(char str[]){
+	int i;	
+	for(i = 0; str[i] != 0; i++){}
+	return i;
+}
+char symbols[] = "!@#$%^&*(){}[]\\;:'\"<>,./?~ \n\t";
+char whitespaceless_symbols[] = "!@#$%^&*(){}[]\\;:'\"<>,./?~";
+
+char alphanumeric[] = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890 \n\t";
+char whitespaceless_alphanumeric[] = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890 ";
+
 int insert(char* source, char* new, int index) {
 	int i = index;
 	char insertion[100000] = {0};
@@ -144,6 +164,7 @@ int main(int argc, char *argv[]) {
 		i = 0;
 		/* Syntax trackers */
 		char current_word[1000] = {};
+		char current_symbols[1000] = {};
 		int word_counter = 0;
 		int word_start = 0;
 		/* Copy all text we want to display, from line lines_start to lines_end */
@@ -159,21 +180,11 @@ int main(int argc, char *argv[]) {
 			if(cpy_check == 1) {
 				display_text[i-cpy_start+offset] = text[i];
 				/* TODO: MAKE FUNCTION */ 
-				if(text[i] == ' ' || text[i] == '\n' || text[i] == '#' ||
-				 text[i] == '+' || text[i] == '[' || text[i] == ']' ||
-				 text[i] == '=' || text[i] == '-' || text[i] == '(' ||
-				 text[i] == ')' || text[i] == '{' || text[i] == '}' ||
-				 text[i] == '<' || text[i] == '>' || text[i] == '/' ||
-				 text[i] == '*' || text[i] == '.' || text[i] == ',' ||
-				 text[i] == '!' || text[i] == '@' || text[i] == '$' ||
-				 text[i] == '%' || text[i] == '^' || text[i] == '&' ||
-				 text[i] == '|' || text[i] == '\\' || text[i] == '?' ||
-				 text[i] == ':' || text[i] == ';' || text[i] == '~' ||
-				 text[i] == '\t') {
+				if(in_string(text[i], symbols)) {
 					if(dir_get_last_attr(syntax_cfg, "SYNTAX", current_word, highlight_val)){
 					    sprintf(highlight_code, "\033[%sm", highlight_val[0]);
 						insert(display_text, highlight_code, word_start+offset);
-						offset+=5;
+						offset+=len(highlight_code);
 						insert(display_text, "\033[0m", i-cpy_start+offset);
 						offset+=4;
 					}
@@ -188,7 +199,7 @@ int main(int argc, char *argv[]) {
 						if(dir_get_last_attr(syntax_cfg, "SYNTAX", current_word, highlight_val)){
 							sprintf(highlight_code, "\033[%sm", highlight_val[0]);
 							insert(display_text, highlight_code, word_start+offset);
-							offset+=5;
+							offset+=len(highlight_code);
 							insert(display_text, "\033[0m", i+1-cpy_start+offset);
 							offset+=4;
 						}
