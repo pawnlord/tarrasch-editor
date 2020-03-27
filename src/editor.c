@@ -114,6 +114,7 @@ int main(int argc, char *argv[]) {
 	int y = 0; 
 	int last_x = 0; 
 	int last_y = 0; 
+	int x_of_lastline = 0;
 	char msg[200];
 	sprintf(msg, "New Buffer");
 	message(width, height, msg);
@@ -138,9 +139,10 @@ int main(int argc, char *argv[]) {
 		if(cursor!= 0)
 			while(text[cursor-1] == 0)
 				cursor--;
-		int nl_check = 0;
+		x_of_lastline = 0;
 		while(text[i]!=0 && i != cursor){
 			if(text[i] == '\n' || x >= width) {
+				x_of_lastline = x;
 				x=0;
 				line_counter++;
 				y++;
@@ -310,45 +312,59 @@ int main(int argc, char *argv[]) {
 						if(y > 3) {
 							j = cursor;
 							i = cursor;
-							while(text[i]!='\n' && i >= 0) {
+							int cx = x;
+							/* find previous line */
+							while(cx > 0 && i >= 0) {
 								--i;
+								cx--;
 							}
+							/* store previous line */
 							cursor = i;
 						 	--i;
 							length = 0;
-							while(text[i]!='\n' && i >= 0) {
+							cx = x_of_lastline;
+							/* find length of previous line */
+							while((text[i]!='\n' && !(cx <= 1)) && i >= 0) {
 								length++;
 								--i;
+								cx--;
 							}
+							/* if x is less than length, goto the spot we found */
+							/* else, goto the last line */
 							if(x < length ) {
 								cursor = (j-cursor)+i;
-							}
-							else {
-								j--;
-								while(text[j]!='\n' && j >= 0) {
-									--j;
-								}
-								cursor = j;
 							}
 						}
 					break;
 					case 'B':
 					//down
 						i = cursor;
+						int cx = x;
 						if(text[cursor] == '\n')
 							cursor--;
+						if(cx == width)
+							cx--;
 						length = 1;
 						int new_length = 0;
-						while(text[++cursor] != '\n' && text[cursor-1] != 0){}
+						/* go to previous EOL or EOF */
+						while(text[++cursor] != '\n' && ++cx < width && text[cursor-1] != 0){}
+						/* save that EOL */
 						j = cursor;
-						while(text[++j] != '\n' && text[j-1] != 0) {
+						cx = 0;
+						/* find the length of this new line */
+						while(text[++j] != '\n' && ++cx < width && text[j-1] != 0) {
 							new_length++;
 						}
 						if(text[j] == '\n')
 							new_length++;
-						while(text[--i] != '\n' && i > 0) {
+						cx = x;
+						/* find offset */
+						while(--cx > 0 && i > 0) {
 							length++;
 						}
+						/* goto offset */
+						/* if the length of the new line is les than the offset, */
+						/* just go to the end of the line */
 						if(length < new_length) {
 							cursor += length;
 						}
