@@ -162,6 +162,7 @@ int main(int argc, char *argv[]) {
 		char cpy_check = 0;
 		int cpy_start = 0;
 		i = 0;
+		int found_line = 0;
 		/* Syntax trackers */
 		char current_word[1000] = {};
 		char current_symbols[1000] = {};
@@ -169,6 +170,7 @@ int main(int argc, char *argv[]) {
 		int word_start = 0;
 		int symbol_counter = 0;
 		int symbol_start = 0;
+		int counter = 0;
 		/* Copy all text we want to display, from line lines_start to lines_end */
 		int offset = 0;
 		while(text[i]!=0) {
@@ -176,12 +178,14 @@ int main(int argc, char *argv[]) {
 			/* Start copying if we are at lines start */
 			if(line_counter == lines_start) {
 				cpy_check = 1;
-				word_start = 0;
+				if(!found_line) {
+					word_start = 0;
+				}
+				found_line = 1;
 			}
 			/* If we are copying, copy */
 			if(cpy_check == 1) {
 				display_text[i-cpy_start+offset] = text[i];
-				/* TODO: MAKE FUNCTION */ 
 				if(in_string(text[i], symbols)) {
 					if(dir_get_last_attr(syntax_cfg, "SYNTAX", current_word, highlight_val)){
 					    sprintf(highlight_code, "\033[%sm", highlight_val[0]);
@@ -189,6 +193,7 @@ int main(int argc, char *argv[]) {
 						offset+=len(highlight_code);
 						insert(display_text, "\033[0m", i-cpy_start+offset);
 						offset+=4;
+						counter++;
 					}
 					word_start = i+1-cpy_start;
 					word_counter = 0;
@@ -204,6 +209,7 @@ int main(int argc, char *argv[]) {
 							offset+=len(highlight_code);
 							insert(display_text, "\033[0m", i+1-cpy_start+offset);
 							offset+=4;
+							counter++;
 						}
 						word_start = i+1-cpy_start;
 						word_counter = 0;
@@ -215,11 +221,11 @@ int main(int argc, char *argv[]) {
 				}
 				if(in_string(text[i], alphanumeric)) {
 					if(dir_get_last_attr(syntax_cfg, "SYMBOLS", "SYMBOLS", highlight_val) && strcmp(current_symbols, "")) {
-							sprintf(highlight_code, "\033[%sm", highlight_val[0]);
-							insert(display_text, highlight_code, symbol_start+offset);
-							offset+=len(highlight_code);
-							insert(display_text, "\033[0m", i-cpy_start+offset);
-							offset+=4;
+						sprintf(highlight_code, "\033[%sm", highlight_val[0]);
+						insert(display_text, highlight_code, symbol_start+offset);
+						offset+=len(highlight_code);
+						insert(display_text, "\033[0m", i-cpy_start+offset);
+						offset+=4;
 					}
 					symbol_start = i+1-cpy_start;
 					symbol_counter = 0;
@@ -230,11 +236,11 @@ int main(int argc, char *argv[]) {
 					current_symbols[symbol_counter] = text[i];
 				
 					if(text[i+1] == 0) {
-							sprintf(highlight_code, "\033[%sm", highlight_val[0]);
-							insert(display_text, highlight_code, symbol_start+offset);
-							offset+=len(highlight_code);
-							insert(display_text, "\033[0m", i+1-cpy_start+offset);
-							offset+=4;
+						sprintf(highlight_code, "\033[%sm", highlight_val[0]);
+						insert(display_text, highlight_code, symbol_start+offset);
+						offset+=len(highlight_code);
+						insert(display_text, "\033[0m", i+1-cpy_start+offset);
+						offset+=4;
 					}
 					symbol_counter++;
 				}
