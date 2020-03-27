@@ -23,10 +23,8 @@ int len(char str[]){
 	return i;
 }
 char symbols[] = "!@#$%^&*(){}[]\\;:'\"<>,./?~ \n\t";
-char whitespaceless_symbols[] = "!@#$%^&*(){}[]\\;:'\"<>,./?~";
 
 char alphanumeric[] = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890 \n\t";
-char whitespaceless_alphanumeric[] = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890 ";
 
 int insert(char* source, char* new, int index) {
 	int i = index;
@@ -132,7 +130,7 @@ int main(int argc, char *argv[]) {
 		y=3;
 		i = 0;
 		lines_start = 0;
-		lines_end = height-4;
+		lines_end = height-3;
 		int line_counter = 0;
 		char display_text[100000] = {0};
 		if(cursor < 0)
@@ -142,11 +140,11 @@ int main(int argc, char *argv[]) {
 				cursor--;
 		int nl_check = 0;
 		while(text[i]!=0 && i != cursor){
-			if(text[i] == '\n' || x > width) {
+			if(text[i] == '\n' || x >= width) {
 				x=0;
 				line_counter++;
 				y++;
-				if(y > height-1) {
+				if(y > height-1 ) {
 					y-=((height-4)/2);
 					lines_start+=((height-4)/2);
 					lines_end+=((height-4)/2);
@@ -163,6 +161,7 @@ int main(int argc, char *argv[]) {
 		int cpy_start = 0;
 		i = 0;
 		int found_line = 0;
+		int curr_x = 0;
 		/* Syntax trackers */
 		char current_word[1000] = {};
 		char current_symbols[1000] = {};
@@ -250,14 +249,19 @@ int main(int argc, char *argv[]) {
 				++cpy_start;
 			}
 			/* if we are going to a new line, add to line coutner */
-			if(text[i] == '\n' || x > width) {
+			if(text[i] == '\n' || curr_x >= width) {
 				line_counter++;
+				curr_x = 0;
 			}
 			/* stop if we are at the end */
 			if(line_counter == lines_end) {
 				cpy_check = 0;
 			}
+			if(text[i] == '\t') {
+				curr_x+=7;
+			}
 			++i;
+			curr_x++;
 		}
 		/* display text */
 		gotoxy(1,3);
