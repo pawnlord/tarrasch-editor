@@ -346,6 +346,7 @@ int main(int argc, char *argv[]) {
 							cx--;
 						length = 1;
 						int new_length = 0;
+						int taboff = 0;
 						/* go to previous EOL or EOF */
 						while(text[++cursor] != '\n' && ++cx < width && text[cursor-1] != 0){}
 						/* save that EOL */
@@ -354,22 +355,29 @@ int main(int argc, char *argv[]) {
 						/* find the length of this new line */
 						while(text[++j] != '\n' && ++cx < width && text[j-1] != 0) {
 							new_length++;
+							if(text[j] == '\t') {
+								new_length+=7;
+								cx+=7;
+								taboff++;
+							}
 						}
 						if(text[j] == '\n')
 							new_length++;
-						cx = x;
-						/* find offset */
-						while(--cx > 0 && i > 0) {
-							length++;
-						}
+						/* x is offset */
 						/* goto offset */
 						/* if the length of the new line is les than the offset, */
 						/* just go to the end of the line */
-						if(length < new_length) {
-							cursor += length;
+						if(x <= new_length) {
+							/* figure out offset with tabs */
+							for(int i = 0; i < x; i++){
+								if(text[cursor] == '\t') {
+									i+=7;
+								}
+								cursor++;
+							}
 						}
 						else {
-							cursor += new_length;
+							cursor += new_length-(taboff*7);
 						}
 					break;
 					case 'C':
