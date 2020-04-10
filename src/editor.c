@@ -277,7 +277,7 @@ int main(int argc, char *argv[]) {
 		printf("ESC TWICE-EXIT WITH SAVING   ^C-EXIT WITHOUT SAVING -- %s -- Tarrasch", filename);
 		
 		gotoxy(1,2);
-		for(i = 0; i < width; ++i) {
+		for(i =  0; i < width; ++i) {
 			printf("-");
 		}
 		gotoxy(x,y);
@@ -310,30 +310,39 @@ int main(int argc, char *argv[]) {
 					case 'A':
 					//up
 						if(y > 3) {
-							j = cursor;
+							int original = cursor;
 							i = cursor;
 							int cx = x;
+							int taboff = 0;
+							int itaboff = 0;
 							/* find previous line */
 							while(cx > 0 && i >= 0) {
+
 								--i;
+								if(text[i]=='\t'){
+									cx-=7;
+									taboff+=1;
+								}
 								cx--;
 							}
 							/* store previous line */
 							cursor = i;
 						 	--i;
-							length = 0;
 							cx = x_of_lastline;
 							/* find length of previous line */
 							while((text[i]!='\n' && !(cx <= 1)) && i >= 0) {
-								length++;
 								--i;
+								if(text[i]=='\t'){
+									cx-=7;
+									itaboff+=1;
+								}
 								cx--;
 							}
 							/* if x is less than length, goto the spot we found */
 							/* else, goto the last line */
-							if(x < length ) {
-								cursor = (j-cursor)+i;
-							}
+							if(x < x_of_lastline) {
+								cursor = i+(original-cursor)+(taboff*7)-(itaboff*7); /* start_of_last_line+(original_position - start_of_this_line) */
+							} 
 						}
 					break;
 					case 'B':
@@ -347,8 +356,12 @@ int main(int argc, char *argv[]) {
 						length = 1;
 						int new_length = 0;
 						int taboff = 0;
-						/* go to previous EOL or EOF */
-						while(text[++cursor] != '\n' && ++cx < width && text[cursor-1] != 0){}
+						/* go to next EOL or EOF */
+						while(text[++cursor] != '\n' && ++cx < width && text[cursor-1] != 0){
+							if(text[cursor] == '\t') {
+								x+=7;
+							}
+						}
 						/* save that EOL */
 						j = cursor;
 						cx = 0;
@@ -369,11 +382,11 @@ int main(int argc, char *argv[]) {
 						/* just go to the end of the line */
 						if(x <= new_length) {
 							/* figure out offset with tabs */
-							for(int i = 0; i < x; i++){
+							for(int i = 0; i < x; i++){	
+								cursor++;
 								if(text[cursor] == '\t') {
 									i+=7;
 								}
-								cursor++;
 							}
 						}
 						else {
@@ -387,6 +400,7 @@ int main(int argc, char *argv[]) {
 					break;
 					default:
 						printf("%c", c);
+						
 					break;
 				}
 			}

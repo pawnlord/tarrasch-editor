@@ -14,8 +14,7 @@
 static struct termios old, new;
 
 /* Initialize new terminal i/o settings */
-void initTermios(int echo) 
-{
+void initTermios(int echo) {
   tcgetattr(0, &old); //grab old terminal i/o settings
   new = old; //make new settings same as old settings
   new.c_lflag &= ~ICANON; //disable buffered i/o
@@ -24,14 +23,12 @@ void initTermios(int echo)
 }
 
 /* Restore old terminal i/o settings */
-void resetTermios(void) 
-{
+void resetTermios(void) {
   tcsetattr(0, TCSANOW, &old);
 }
 
 /* Read 1 character - echo defines echo mode */
-int getch_(int echo) 
-{
+int getch_(int echo) {
   int ch;
   initTermios(echo);
   ch = getchar();
@@ -43,8 +40,7 @@ int getch_(int echo)
 Read 1 character without echo 
 getch() function definition.
 */
-int getch(void) 
-{
+int getch(void) {
   return getch_(0);
 }
 
@@ -52,13 +48,11 @@ int getch(void)
 Read 1 character with echo 
 getche() function definition.
 */
-int getche(void) 
-{
+int getche(void) {
   return getch_(1);
 }
 
-void message(int width, int height, char* message)
-{
+void message(int width, int height, char* message) {
 	int length = 0;
 	while(message[length+1] !=0)
 		length++;
