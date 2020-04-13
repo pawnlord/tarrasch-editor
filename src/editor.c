@@ -97,6 +97,23 @@ int main(int argc, char *argv[]) {
         fclose(fp);
         config_reader(syntax_filename, &syntax_cfg);
     }
+    /* fields of syntax */
+    char syntaxfield[255][255] = {""};//malloc(255);
+    char symbolsfield[255][255] = {""};//malloc(255);
+    char blockfield[255][255] = {""};//malloc(255);
+    /*for(int i = 0; i < 255; i++){
+    	syntaxfield[i] = malloc(255);
+    	symbolsfield[i] = malloc(255);
+    	blockfield[i] = malloc(255);
+    	for(int j = 0; j < 255; j++){
+    		syntaxfield[i][j] = 0;
+    		symbolsfield[i][j] = 0;
+    		blockfield[i][j] = 0;
+    	}
+    }*/
+    get_field(syntax_cfg, "SYNTAX", syntaxfield);
+    get_field(syntax_cfg, "SYMBOLS", symbolsfield);
+    get_field(syntax_cfg, "BLOCKSYNTAX", blockfield);
 	struct winsize w;
 	/* Get the width for formating */
 	ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
@@ -190,7 +207,7 @@ int main(int argc, char *argv[]) {
 			if(cpy_check == 1) {
 				display_text[i-cpy_start+offset] = text[i];
 				if(in_string(text[i], symbols) && !in_block) {
-					if(dir_get_last_attr(syntax_cfg, "SYNTAX", current_word, highlight_val) && !in_block){
+					if(get_first_attr(syntax_cfg, syntaxfield, current_word, highlight_val) && !in_block){
 					    sprintf(highlight_code, "\033[%sm", highlight_val[0]);
 						insert(display_text, highlight_code, word_start+offset);
 						offset+=len(highlight_code);
@@ -206,7 +223,7 @@ int main(int argc, char *argv[]) {
 				} else {
 					current_word[word_counter] = text[i];
 					if(text[i+1] == 0) {
-						if(dir_get_last_attr(syntax_cfg, "SYNTAX", current_word, highlight_val) && !in_block){
+						if(get_first_attr(syntax_cfg, syntaxfield, current_word, highlight_val) && !in_block){
 							sprintf(highlight_code, "\033[%sm", highlight_val[0]);
 							insert(display_text, highlight_code, word_start+offset);
 							offset+=len(highlight_code);
@@ -228,7 +245,7 @@ int main(int argc, char *argv[]) {
 						insert(display_text, "\033[0m", i-cpy_start+offset);
 						in_block = 0;
 						offset+=4;
-					} else if(dir_get_last_attr(syntax_cfg, "BLOCKSYNTAX", current_symbols, highlight_val) && strcmp(current_symbols, "") && !in_block) {
+					} else if(get_first_attr(syntax_cfg, blockfield, current_symbols, highlight_val) && strcmp(current_symbols, "") && !in_block) {
 						sprintf(highlight_code, "\033[%sm", highlight_val[0]);
 						insert(display_text, highlight_code, symbol_start+offset);
 						offset+=len(highlight_code);
@@ -239,7 +256,7 @@ int main(int argc, char *argv[]) {
 							strcpy(end, highlight_val[1]);
 						}
 						printf("-%s %s-", highlight_code, end);
-					} else if(dir_get_last_attr(syntax_cfg, "SYMBOLS", "SYMBOLS", highlight_val) && strcmp(current_symbols, "") && !in_block) {
+					} else if(get_first_attr(syntax_cfg, symbolsfield, "SYMBOLS", highlight_val) && strcmp(current_symbols, "") && !in_block) {
 						sprintf(highlight_code, "\033[%sm", highlight_val[0]);
 						
 						insert(display_text, highlight_code, symbol_start+offset);
@@ -260,7 +277,7 @@ int main(int argc, char *argv[]) {
 						sprintf(highlight_code, "\033[%sm", highlight_val[0]);
 						insert(display_text, highlight_code, symbol_start+offset);
 						offset+=len(highlight_code);
-						insert(display_text, "\033[0m done", i+1-cpy_start+offset);
+						insert(display_text, "\033[0m", i+1-cpy_start+offset);
 						offset+=4;
 					}
 					symbol_counter++;
@@ -287,7 +304,7 @@ int main(int argc, char *argv[]) {
 			++i;
 			curr_x++;
 		}
-		insert(display_text, "\033[0m done", i-cpy_start+offset);
+		insert(display_text, "\033[0m", i-cpy_start+offset);
 		/* display text */
 		gotoxy(1,3);
 		printf("%s",display_text);
