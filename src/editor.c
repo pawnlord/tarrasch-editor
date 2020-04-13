@@ -86,10 +86,20 @@ int main(int argc, char *argv[]) {
 	int cursor = 0;
 	/* Config file for syntax highlighting */
 	config syntax_cfg;
-	syntax_cfg.eol = '\n';
-	char syntax_filename[50] = {0};
-	char highlight_val[2][50] = {""};
-	char highlight_code[50] = {0}; 
+	auto_cfg_setup(&syntax_cfg);
+	char*  syntax_filename = malloc(50);
+	char*  highlight_code = malloc(50); 
+	char** highlight_val = malloc(10);
+	for(int i = 0; i < 50; i++){
+		syntax_filename[i] = 0;
+		highlight_code[i] = 0;
+	}
+	for(int i = 0; i < 10; i++){
+		highlight_val[i] = malloc(50);
+		for(int j = 0; j < 50; j++){
+			highlight_val[i][j] = 0;
+		}
+	}
 	strcat(strcpy(syntax_filename, getenv("HOME")), "/.tarrasch/syntax.cfg");
 		
 	if (!(config_reader(syntax_filename, &syntax_cfg))) {
@@ -98,10 +108,10 @@ int main(int argc, char *argv[]) {
         config_reader(syntax_filename, &syntax_cfg);
     }
     /* fields of syntax */
-    char syntaxfield[255][255] = {""};//malloc(255);
-    char symbolsfield[255][255] = {""};//malloc(255);
-    char blockfield[255][255] = {""};//malloc(255);
-    /*for(int i = 0; i < 255; i++){
+    char** syntaxfield= malloc(255*sizeof(*syntaxfield));
+    char** symbolsfield = malloc(255*sizeof(*symbolsfield));
+    char** blockfield = malloc(255*sizeof(*blockfield));
+    for(int i = 0; i < 255; i++){
     	syntaxfield[i] = malloc(255);
     	symbolsfield[i] = malloc(255);
     	blockfield[i] = malloc(255);
@@ -110,10 +120,11 @@ int main(int argc, char *argv[]) {
     		symbolsfield[i][j] = 0;
     		blockfield[i][j] = 0;
     	}
-    }*/
+    }
     get_field(syntax_cfg, "SYNTAX", syntaxfield);
     get_field(syntax_cfg, "SYMBOLS", symbolsfield);
     get_field(syntax_cfg, "BLOCKSYNTAX", blockfield);
+    printf("noerr\n");
 	struct winsize w;
 	/* Get the width for formating */
 	ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
@@ -255,7 +266,6 @@ int main(int argc, char *argv[]) {
 						} else{
 							strcpy(end, highlight_val[1]);
 						}
-						printf("-%s %s-", highlight_code, end);
 					} else if(get_first_attr(syntax_cfg, symbolsfield, "SYMBOLS", highlight_val) && strcmp(current_symbols, "") && !in_block) {
 						sprintf(highlight_code, "\033[%sm", highlight_val[0]);
 						
